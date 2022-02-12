@@ -3,6 +3,7 @@ import bs4
 import os
 import unicodedata
 import re
+from tqdm import tqdm
 
 def slugify(value, allow_unicode=False):
     """
@@ -38,13 +39,13 @@ try:
         os.mkdir("./output")
     os.mkdir(f"./output/{slugify(search)}")
 
-    for img in img_divs:
+    for img in tqdm(img_divs, desc="fetching image url from google", unit =" req"):
         img_url_index = str(img).find("src=\"") + 5
         img_url = str(img)[img_url_index::].split("\"")[0]
         if img_url.startswith("http"):
             img_urls.append(img_url)
 
-    for index, img in enumerate(img_urls):
+    for index, img in enumerate(tqdm(img_urls, desc="downloading images", unit =" images")):
         img_data = req.get(img).content
         with open(f"./output/{slugify(search)}/pic{index+1}.jpg", "wb") as local_file:
             local_file.write(img_data)
