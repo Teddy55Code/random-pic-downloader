@@ -34,6 +34,8 @@ img_divs = soup.find_all("img")
 
 img_urls = []
 try:
+    if not os.path.isdir("./output"):
+        os.mkdir("./output")
     os.mkdir(f"./output/{slugify(search)}")
 
     for img in img_divs:
