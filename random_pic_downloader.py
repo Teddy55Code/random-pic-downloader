@@ -1,3 +1,15 @@
+import os
+
+os.system("pip install -r requirements.txt")
+
+# clearing screen
+try:
+    print("\n"*os.get_terminal_size().lines)
+except AttributeError:
+    print("\n"*100)
+except OSError:
+    print("\n" * 100)
+
 import selenium.common
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -12,7 +24,6 @@ from tqdm import tqdm
 import itertools
 import threading
 import time
-import os
 import sys
 
 finished = False
