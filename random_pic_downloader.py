@@ -24,7 +24,7 @@ def slugify(value, allow_unicode=False):
 
 search = input("Please give a searchterm: ")
 
-url = f"https://www.google.com/search?q={search}&source=lnms&tbm=isch&num=30"
+url = f"https://www.google.com/search?q={search}&source=lnms&tbm=isch"
 
 req_result = req.get(url)
 
