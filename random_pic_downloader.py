@@ -1,9 +1,22 @@
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.firefox import GeckoDriverManager
 import requests as req
 import bs4
-import os
 import unicodedata
 import re
 from tqdm import tqdm
+import time
+import os
+
+def fileInPath(name, root):
+    for count, (base, dirs, files) in enumerate(os.walk(root)):
+        if name in files:
+            print(count)
+            return os.path.join(base, name)
+        elif count >= 10000:
+            return None
 
 def slugify(value, allow_unicode=False):
     """
@@ -21,10 +34,48 @@ def slugify(value, allow_unicode=False):
     value = re.sub(r'[^\w\s-]', '', value.lower())
     return re.sub(r'[-\s]+', '-', value).strip('-_')
 
+if os.name == "nt":
+    root = __file__[0:3]
+    print("searching for chrome")
+    if fileInPath("chrome.exe", root) is None:
+        print("chrome wasn't found")
+        print("searching for firefox")
+        if fileInPath("firefox.exe", root) is None:
+            print("firefox wasn't found")
+            input("Please install a supported browser.\npress enter to exit.")
+            exit()
+        else:
+            print("found firefox")
+            installed_browser = "firefox"
+    else:
+        print("found chrome")
+        installed_browser = "chrome"
+else:
+    input("sorry random pic downloader currently only supports windows.\npress enter to exit.")
+    exit()
 
 search = input("Please give a searchterm: ")
 
-url = f"https://www.google.com/search?q={search}&source=lnms&tbm=isch&num=30"
+if installed_browser == "chrome":
+    op = webdriver.ChromeOptions()
+    op.add_argument('headless')
+
+    ser = Service(ChromeDriverManager().install())
+    driver = webdriver.Chrome(service=ser, options=op)
+
+
+
+elif installed_browser == "firefox":
+    op = webdriver.FirefoxOptions()
+    op.add_argument('headless')
+
+    ser = Service(GeckoDriverManager().install())
+    driver = webdriver.Firefox(service=ser, options=op)
+
+
+url = f"https://www.google.com/search?q={search}&source=lnms&tbm=isch"
+
+driver.get(url)
 
 req_result = req.get(url)
 
