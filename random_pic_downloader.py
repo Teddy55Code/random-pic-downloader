@@ -1,7 +1,9 @@
+import selenium.common
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
+from selenium.webdriver.common.by import By
 import requests as req
 import bs4
 import unicodedata
@@ -60,7 +62,7 @@ if installed_browser == "chrome":
     op.add_argument('headless')
 
     ser = Service(ChromeDriverManager().install())
-    driver = webdriver.Chrome(service=ser, options=op)
+    driver = webdriver.Chrome(service=ser , options=op)
 
 elif installed_browser == "firefox":
     op = webdriver.FirefoxOptions()
@@ -72,6 +74,15 @@ elif installed_browser == "firefox":
 url = f"https://www.google.com/search?q={search}&source=lnms&tbm=isch"
 
 driver.get(url)
+
+time.sleep(0.5)
+
+while not driver.find_element(by=By.XPATH, value='//*[@id="islmp"]/div/div/div/div[1]/div[2]/div[1]/div[2]/div[1]').is_displayed():
+    driver.execute_script("window.scrollTo(0,document.body.scrollHeight)")
+    try:
+        driver.find_element(by=By.XPATH, value='//*[@id="islmp"]/div/div/div/div[1]/div[2]/div[2]/input').click()
+    except selenium.common.exceptions.ElementNotInteractableException:
+        pass
 
 html = driver.page_source
 
@@ -103,6 +114,6 @@ try:
         with open(f"./output/{slugify(search)}/pic{index+1}.jpg", "wb") as local_file:
             local_file.write(img_data)
 except FileExistsError:
-    print(f"Please remove the directory {search} from the output folder")
+    print(f"Please remove the directory {slugify(search)} from the output folder.")
 
-print(f"downloaded {len(img_urls)} images")
+print(f"Downloaded {len(img_urls)} images.")
