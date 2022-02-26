@@ -13,7 +13,6 @@ import os
 def fileInPath(name, root):
     for count, (base, dirs, files) in enumerate(os.walk(root)):
         if name in files:
-            print(count)
             return os.path.join(base, name)
         elif count >= 10000:
             return None
@@ -72,15 +71,15 @@ elif installed_browser == "firefox":
     ser = Service(GeckoDriverManager().install())
     driver = webdriver.Firefox(service=ser, options=op)
 
-
 url = f"https://www.google.com/search?q={search}&source=lnms&tbm=isch"
 
 driver.get(url)
 
-req_result = req.get(url)
+html = driver.page_source
 
-soup = bs4.BeautifulSoup(req_result.text,
-                         "html.parser")
+soup = bs4.BeautifulSoup(html, "html.parser")
+
+soup = soup.find("div", {"id": "islmp"})
 
 img_divs = soup.find_all("img")
 
@@ -93,7 +92,7 @@ try:
     for img in tqdm(img_divs, desc="fetching image url from google", unit =" req"):
         img_url_index = str(img).find("src=\"") + 5
         img_url = str(img)[img_url_index::].split("\"")[0]
-        if img_url.startswith("http"):
+        if img_url.startswith("http") and not "www.gstatic.com" in img_url:
             img_urls.append(img_url)
 
     for index, img in enumerate(tqdm(img_urls, desc="downloading images", unit =" images")):
