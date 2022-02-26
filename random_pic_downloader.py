@@ -24,7 +24,7 @@ def loading_animation():
         else:
             sys.stdout.write(f"\rcollecting images {cycle}")
             sys.stdout.flush()
-            time.sleep(0.1)
+            time.sleep(0.3)
     sys.stdout.write("\rcollected images")
 
 def file_in_path(name, root):
@@ -72,12 +72,14 @@ else:
 
 search = input("Please give a searchterm: ")
 
+amount_to_download = int(input("Please enter how many images you want: "))
+
 if installed_browser == "chrome":
     op = webdriver.ChromeOptions()
     op.add_argument('headless')
 
     ser = Service(ChromeDriverManager().install())
-    driver = webdriver.Chrome(service=ser , options=op)
+    driver = webdriver.Chrome(service=ser, options=op)
 
 elif installed_browser == "firefox":
     op = webdriver.FirefoxOptions()
@@ -97,9 +99,22 @@ thread.start()
 
 while not driver.find_element(by=By.XPATH, value='//*[@id="islmp"]/div/div/div/div[1]/div[2]/div[1]/div[2]/div[1]').is_displayed():
     driver.execute_script("window.scrollTo(0,document.body.scrollHeight)")
+
+    # trying to click on "see more images"
     try:
         driver.find_element(by=By.XPATH, value='//*[@id="islmp"]/div/div/div/div[1]/div[2]/div[2]/input').click()
     except selenium.common.exceptions.ElementNotInteractableException:
+        pass
+    except selenium.common.exceptions.NoSuchElementException:
+        pass
+
+    # trying to click on "see more anyway" this is necessary because google sometimes shows
+    # "The rest of the results might not be what you're looking for. See more anyway" instead of "see more images"
+    try:
+        driver.find_element(by=By.XPATH, value='//*[@id="islmp"]/div/div/div/div[2]/span').click()
+    except selenium.common.exceptions.ElementNotInteractableException:
+        pass
+    except selenium.common.exceptions.NoSuchElementException:
         pass
 
 finished = True
@@ -122,8 +137,7 @@ try:
         if "data-src" in str(div):
             img_divs_to_process.append(div)
 
-
-    for img in tqdm(img_divs_to_process, desc="fetching image url from google", unit =" req"):
+    for img in tqdm(img_divs_to_process[:amount_to_download], desc="fetching image url from google", unit =" req"):
         img_url_index = str(img).find("src=\"") + 5
         img_url = str(img)[img_url_index::].split("\"")[0]
         if img_url.startswith("http"):
