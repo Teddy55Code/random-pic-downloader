@@ -62,8 +62,6 @@ if installed_browser == "chrome":
     ser = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=ser, options=op)
 
-
-
 elif installed_browser == "firefox":
     op = webdriver.FirefoxOptions()
     op.add_argument('headless')
@@ -79,20 +77,25 @@ html = driver.page_source
 
 soup = bs4.BeautifulSoup(html, "html.parser")
 
-soup = soup.find("div", {"id": "islmp"})
-
-img_divs = soup.find_all("img")
-
 img_urls = []
 try:
     if not os.path.isdir("./output"):
         os.mkdir("./output")
     os.mkdir(f"./output/{slugify(search)}")
 
-    for img in tqdm(img_divs, desc="fetching image url from google", unit =" req"):
+    img_divs = soup.find_all("img", {"class", "rg_i Q4LuWd"})
+
+    img_divs_to_process = []
+
+    for div in img_divs:
+        if "data-src" in str(div):
+            img_divs_to_process.append(div)
+
+
+    for img in tqdm(img_divs_to_process, desc="fetching image url from google", unit =" req"):
         img_url_index = str(img).find("src=\"") + 5
         img_url = str(img)[img_url_index::].split("\"")[0]
-        if img_url.startswith("http") and not "www.gstatic.com" in img_url:
+        if img_url.startswith("http"):
             img_urls.append(img_url)
 
     for index, img in enumerate(tqdm(img_urls, desc="downloading images", unit =" images")):
