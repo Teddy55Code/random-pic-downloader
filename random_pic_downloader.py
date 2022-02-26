@@ -9,10 +9,25 @@ import bs4
 import unicodedata
 import re
 from tqdm import tqdm
+import itertools
+import threading
 import time
 import os
+import sys
 
-def fileInPath(name, root):
+finished = False
+
+def loading_animation():
+    for cycle in itertools.cycle(["|", "/", "-", "\\"]):
+        if finished:
+            break
+        else:
+            sys.stdout.write(f"\rcollecting images {cycle}")
+            sys.stdout.flush()
+            time.sleep(0.1)
+    sys.stdout.write("\rcollected images")
+
+def file_in_path(name, root):
     for count, (base, dirs, files) in enumerate(os.walk(root)):
         if name in files:
             return os.path.join(base, name)
@@ -38,10 +53,10 @@ def slugify(value, allow_unicode=False):
 if os.name == "nt":
     root = __file__[0:3]
     print("searching for chrome")
-    if fileInPath("chrome.exe", root) is None:
+    if file_in_path("chrome.exe", root) is None:
         print("chrome wasn't found")
         print("searching for firefox")
-        if fileInPath("firefox.exe", root) is None:
+        if file_in_path("firefox.exe", root) is None:
             print("firefox wasn't found")
             input("Please install a supported browser.\npress enter to exit.")
             exit()
@@ -77,12 +92,17 @@ driver.get(url)
 
 time.sleep(0.5)
 
+thread = threading.Thread(target=loading_animation)
+thread.start()
+
 while not driver.find_element(by=By.XPATH, value='//*[@id="islmp"]/div/div/div/div[1]/div[2]/div[1]/div[2]/div[1]').is_displayed():
     driver.execute_script("window.scrollTo(0,document.body.scrollHeight)")
     try:
         driver.find_element(by=By.XPATH, value='//*[@id="islmp"]/div/div/div/div[1]/div[2]/div[2]/input').click()
     except selenium.common.exceptions.ElementNotInteractableException:
         pass
+
+finished = True
 
 html = driver.page_source
 
