@@ -1,6 +1,19 @@
+import pkg_resources
+from pkg_resources import DistributionNotFound, VersionConflict
 import os
 
-os.system("pip install -r requirements.txt")
+requirements = []
+with open("requirements.txt") as f:
+    lines = f.readlines()
+    for line in lines:
+        requirements.append(line)
+
+try:
+    pkg_resources.require(requirements)
+except DistributionNotFound:
+    os.system("pip install -r requirements.txt")
+except VersionConflict:
+    os.system("pip install -r requirements.txt")
 
 # clearing screen
 try:
@@ -20,11 +33,14 @@ import requests as req
 import bs4
 import unicodedata
 import re
+from rich.console import Console
 from tqdm import tqdm
 import itertools
 import threading
 import time
 import sys
+
+console = Console()
 
 finished = False
 
@@ -36,7 +52,7 @@ def loading_animation():
             sys.stdout.write(f"\rcollecting images {cycle}")
             sys.stdout.flush()
             time.sleep(0.3)
-    sys.stdout.write("\rcollected images")
+    sys.stdout.write("\rcollected images\n")
 
 def file_in_path(name, root):
     for count, (base, dirs, files) in enumerate(os.walk(root)):
@@ -63,19 +79,19 @@ def slugify(value, allow_unicode=False):
 
 if os.name == "nt":
     root = __file__[0:3]
-    print("searching for chrome")
+    print("searching for chrome...")
     if file_in_path("chrome.exe", root) is None:
-        print("chrome wasn't found")
-        print("searching for firefox")
+        console.print("[red]chrome wasn't found[/]")
+        print("searching for firefox...")
         if file_in_path("firefox.exe", root) is None:
-            print("firefox wasn't found")
+            console.print("[red]firefox wasn't found[/]")
             input("Please install a supported browser.\npress enter to exit.")
             exit()
         else:
-            print("found firefox")
+            console.print("[bold]found firefox[/]")
             installed_browser = "firefox"
     else:
-        print("found chrome")
+        console.print("[bold]found chrome[/]")
         installed_browser = "chrome"
 else:
     input("sorry random pic downloader currently only supports windows.\npress enter to exit.")
