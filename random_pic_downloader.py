@@ -8,6 +8,7 @@ with open("requirements.txt") as f:
     for line in lines:
         requirements.append(line)
 
+# checking if all requirements are already satisfied
 try:
     pkg_resources.require(requirements)
 except DistributionNotFound:
@@ -42,7 +43,7 @@ import sys
 
 console = Console()
 
-finished = False
+exited = False
 
 def loading_animation():
     for cycle in itertools.cycle(["|", "/", "-", "\\"]):
@@ -97,10 +98,6 @@ else:
     input("sorry random pic downloader currently only supports windows.\npress enter to exit.")
     exit()
 
-search = input("Please give a searchterm: ")
-
-amount_to_download = int(input("Please enter how many images you want: "))
-
 if installed_browser == "chrome":
     op = webdriver.ChromeOptions()
     op.add_argument('headless')
@@ -115,66 +112,79 @@ elif installed_browser == "firefox":
     ser = Service(GeckoDriverManager().install())
     driver = webdriver.Firefox(service=ser, options=op)
 
-url = f"https://www.google.com/search?q={search}&source=lnms&tbm=isch"
+time.sleep(0.2)
 
-driver.get(url)
+while not exited:
+    search = input("Please give a searchterm: ")
 
-time.sleep(0.5)
+    amount_to_download = int(input("Please enter how many images you want: "))
 
-thread = threading.Thread(target=loading_animation)
-thread.start()
+    url = f"https://www.google.com/search?q={search}&source=lnms&tbm=isch"
 
-while not driver.find_element(by=By.XPATH, value='//*[@id="islmp"]/div/div/div/div[1]/div[2]/div[1]/div[2]/div[1]').is_displayed():
-    driver.execute_script("window.scrollTo(0,document.body.scrollHeight)")
+    driver.get(url)
 
-    # trying to click on "see more images"
+    time.sleep(0.5)
+
+    finished = False
+    thread = threading.Thread(target=loading_animation)
+    thread.start()
+
+    while not driver.find_element(by=By.XPATH, value='//*[@id="islmp"]/div/div/div/div[1]/div[2]/div[1]/div[2]/div[1]').is_displayed():
+        driver.execute_script("window.scrollTo(0,document.body.scrollHeight)")
+
+        # trying to click on "see more images"
+        try:
+            driver.find_element(by=By.XPATH, value='//*[@id="islmp"]/div/div/div/div[1]/div[2]/div[2]/input').click()
+        except selenium.common.exceptions.ElementNotInteractableException:
+            pass
+        except selenium.common.exceptions.NoSuchElementException:
+            pass
+
+        # trying to click on "see more anyway" this is necessary because google sometimes shows
+        # "The rest of the results might not be what you're looking for. See more anyway" instead of "see more images"
+        try:
+            driver.find_element(by=By.XPATH, value='//*[@id="islmp"]/div/div/div/div[2]/span').click()
+        except selenium.common.exceptions.ElementNotInteractableException:
+            pass
+        except selenium.common.exceptions.NoSuchElementException:
+            pass
+
+    finished = True
+
+    html = driver.page_source
+
+    soup = bs4.BeautifulSoup(html, "html.parser")
+
+    img_urls = []
     try:
-        driver.find_element(by=By.XPATH, value='//*[@id="islmp"]/div/div/div/div[1]/div[2]/div[2]/input').click()
-    except selenium.common.exceptions.ElementNotInteractableException:
-        pass
-    except selenium.common.exceptions.NoSuchElementException:
-        pass
+        if not os.path.isdir("./output"):
+            os.mkdir("./output")
+        os.mkdir(f"./output/{slugify(search)}")
 
-    # trying to click on "see more anyway" this is necessary because google sometimes shows
-    # "The rest of the results might not be what you're looking for. See more anyway" instead of "see more images"
-    try:
-        driver.find_element(by=By.XPATH, value='//*[@id="islmp"]/div/div/div/div[2]/span').click()
-    except selenium.common.exceptions.ElementNotInteractableException:
-        pass
-    except selenium.common.exceptions.NoSuchElementException:
-        pass
+        img_divs = soup.find_all("img", {"class", "rg_i Q4LuWd"})
 
-finished = True
+        img_divs_to_process = []
 
-html = driver.page_source
+        for div in img_divs:
+            if "data-src" in str(div):
+                img_divs_to_process.append(div)
 
-soup = bs4.BeautifulSoup(html, "html.parser")
+        for img in tqdm(img_divs_to_process[:amount_to_download], desc="fetching image url from google", unit =" req"):
+            img_url_index = str(img).find("src=\"") + 5
+            img_url = str(img)[img_url_index::].split("\"")[0]
+            if img_url.startswith("http"):
+                img_urls.append(img_url)
 
-img_urls = []
-try:
-    if not os.path.isdir("./output"):
-        os.mkdir("./output")
-    os.mkdir(f"./output/{slugify(search)}")
+        for index, img in enumerate(tqdm(img_urls, desc="downloading images", unit =" images")):
+            img_data = req.get(img).content
+            with open(f"./output/{slugify(search)}/pic{index+1}.jpg", "wb") as local_file:
+                local_file.write(img_data)
+    except FileExistsError:
+        print(f"Please remove the directory {slugify(search)} from the output folder.")
 
-    img_divs = soup.find_all("img", {"class", "rg_i Q4LuWd"})
+    print(f"Downloaded {len(img_urls)} images.")
 
-    img_divs_to_process = []
+    repeat = input("Do you want to download more images (y/N): ")
 
-    for div in img_divs:
-        if "data-src" in str(div):
-            img_divs_to_process.append(div)
-
-    for img in tqdm(img_divs_to_process[:amount_to_download], desc="fetching image url from google", unit =" req"):
-        img_url_index = str(img).find("src=\"") + 5
-        img_url = str(img)[img_url_index::].split("\"")[0]
-        if img_url.startswith("http"):
-            img_urls.append(img_url)
-
-    for index, img in enumerate(tqdm(img_urls, desc="downloading images", unit =" images")):
-        img_data = req.get(img).content
-        with open(f"./output/{slugify(search)}/pic{index+1}.jpg", "wb") as local_file:
-            local_file.write(img_data)
-except FileExistsError:
-    print(f"Please remove the directory {slugify(search)} from the output folder.")
-
-print(f"Downloaded {len(img_urls)} images.")
+    if repeat != "y":
+        exited = True
