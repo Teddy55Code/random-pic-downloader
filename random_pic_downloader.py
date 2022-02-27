@@ -22,7 +22,7 @@ try:
 except AttributeError:
     print("\n"*100)
 except OSError:
-    print("\n" * 100)
+    print("\n"*100)
 
 import selenium.common
 from selenium import webdriver
@@ -129,6 +129,7 @@ while not exited:
     thread = threading.Thread(target=loading_animation)
     thread.start()
 
+    # the while loop loads alle available images by scrolling until "Looks like you've reached the end" is displayed
     while not driver.find_element(by=By.XPATH, value='//*[@id="islmp"]/div/div/div/div[1]/div[2]/div[1]/div[2]/div[1]').is_displayed():
         driver.execute_script("window.scrollTo(0,document.body.scrollHeight)")
 
@@ -161,6 +162,7 @@ while not exited:
             os.mkdir("./output")
         os.mkdir(f"./output/{slugify(search)}")
 
+        # filtering out everything that isn't a search results image
         img_divs = soup.find_all("img", {"class", "rg_i Q4LuWd"})
 
         img_divs_to_process = []
@@ -169,12 +171,14 @@ while not exited:
             if "data-src" in str(div):
                 img_divs_to_process.append(div)
 
+        # isolating the src of the img tag
         for img in tqdm(img_divs_to_process[:amount_to_download], desc="fetching image url from google", unit =" req"):
             img_url_index = str(img).find("src=\"") + 5
             img_url = str(img)[img_url_index::].split("\"")[0]
             if img_url.startswith("http"):
                 img_urls.append(img_url)
 
+        # fetching all images and saving them to the correct output folder
         for index, img in enumerate(tqdm(img_urls, desc="downloading images", unit =" images")):
             img_data = req.get(img).content
             with open(f"./output/{slugify(search)}/pic{index+1}.jpg", "wb") as local_file:
