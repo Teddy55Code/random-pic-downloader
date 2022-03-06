@@ -107,7 +107,7 @@ if installed_browser == "chrome":
 
 elif installed_browser == "firefox":
     op = webdriver.FirefoxOptions()
-    op.add_argument('headless')
+    op.headless = True
 
     ser = Service(GeckoDriverManager().install())
     driver = webdriver.Firefox(service=ser, options=op)
