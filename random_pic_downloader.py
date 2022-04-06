@@ -10,11 +10,15 @@ with open("requirements.txt") as f:
 
 # checking if all requirements are already satisfied
 try:
-    pkg_resources.require(requirements)
-except DistributionNotFound:
-    os.system("pip install -r requirements.txt")
-except VersionConflict:
-    os.system("pip install -r requirements.txt")
+    try:
+        pkg_resources.require(requirements)
+    except DistributionNotFound:
+        os.system("pip install -r requirements.txt")
+    except VersionConflict:
+        os.system("pip install -r requirements.txt")
+except Exception:
+    input("an error occurred while installing requirements, please install them manually.\npress enter to exit.")
+    exit()
 
 # clearing screen
 try:
