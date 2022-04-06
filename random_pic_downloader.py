@@ -185,7 +185,7 @@ while not exited:
         # fetching all images and saving them to the correct output folder
         for index, img in enumerate(tqdm(img_urls, desc="downloading images", unit =" images")):
             img_data = req.get(img).content
-            with open(f"./output/{slugify(search)}/pic{index+1}.jpg", "wb") as local_file:
+            with open(f"./output/{slugify(search)}/pic{index+1}.png", "wb") as local_file:
                 local_file.write(img_data)
     except FileExistsError:
         print(f"Please remove the directory {slugify(search)} from the output folder.")
