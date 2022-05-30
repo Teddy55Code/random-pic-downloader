@@ -22,11 +22,11 @@ except Exception:
 
 # clearing screen
 try:
-    print("\n"*os.get_terminal_size().lines)
+    print("\n" * os.get_terminal_size().lines)
 except AttributeError:
-    print("\n"*100)
+    print("\n" * 100)
 except OSError:
-    print("\n"*100)
+    print("\n" * 100)
 
 import selenium.common
 from selenium import webdriver
@@ -49,6 +49,7 @@ console = Console()
 
 exited = False
 
+
 def loading_animation():
     for cycle in itertools.cycle(["|", "/", "-", "\\"]):
         if finished:
@@ -59,12 +60,14 @@ def loading_animation():
             time.sleep(0.3)
     sys.stdout.write("\rcollected images   \n     ")
 
+
 def file_in_path(name, root):
     for count, (base, dirs, files) in enumerate(os.walk(root)):
         if name in files:
             return os.path.join(base, name)
         elif count >= 10000:
             return None
+
 
 def slugify(value, allow_unicode=False):
     """
@@ -82,25 +85,30 @@ def slugify(value, allow_unicode=False):
     value = re.sub(r'[^\w\s-]', '', value.lower())
     return re.sub(r'[-\s]+', '-', value).strip('-_')
 
-if os.name == "nt":
+
+def load_browser():
+    if os.name != "nt":
+        input("sorry random pic downloader currently only supports windows.\npress enter to exit.")
+        exit()
+
     root = __file__[0:3]
     print("searching for chrome...")
-    if file_in_path("chrome.exe", root) is None:
-        console.print("[red]chrome wasn't found[/]")
-        print("searching for firefox...")
-        if file_in_path("firefox.exe", root) is None:
-            console.print("[red]firefox wasn't found[/]")
-            input("Please install a supported browser.\npress enter to exit.")
-            exit()
-        else:
-            console.print("[bold]found firefox[/]")
-            installed_browser = "firefox"
-    else:
+    if file_in_path("chrome.exe", root) is not None:
         console.print("[bold]found chrome[/]")
-        installed_browser = "chrome"
-else:
-    input("sorry random pic downloader currently only supports windows.\npress enter to exit.")
+        return "chrome"
+
+    console.print("[red]chrome wasn't found[/]")
+    print("searching for firefox...")
+    if file_in_path("firefox.exe", root) is not None:
+        console.print("[bold]found firefox[/]")
+        return "firefox"
+
+    console.print("[red]firefox wasn't found[/]")
+    input("Please install a supported browser.\npress enter to exit.")
     exit()
+
+
+installed_browser = load_browser()
 
 if installed_browser == "chrome":
     op = webdriver.ChromeOptions()
@@ -134,7 +142,8 @@ while not exited:
     thread.start()
 
     # the while loop loads alle available images by scrolling until "Looks like you've reached the end" is displayed
-    while not driver.find_element(by=By.XPATH, value='//*[@id="islmp"]/div/div/div/div[1]/div[2]/div[1]/div[2]/div[1]').is_displayed():
+    while not driver.find_element(by=By.XPATH,
+                                  value='//*[@id="islmp"]/div/div/div/div[1]/div[2]/div[1]/div[2]/div[1]').is_displayed():
         driver.execute_script("window.scrollTo(0,document.body.scrollHeight)")
 
         # trying to click on "see more images"
@@ -176,16 +185,16 @@ while not exited:
                 img_divs_to_process.append(div)
 
         # isolating the src of the img tag
-        for img in tqdm(img_divs_to_process[:amount_to_download], desc="fetching image url from google", unit =" req"):
+        for img in tqdm(img_divs_to_process[:amount_to_download], desc="fetching image url from google", unit=" req"):
             img_url_index = str(img).find("src=\"") + 5
             img_url = str(img)[img_url_index::].split("\"")[0]
             if img_url.startswith("http"):
                 img_urls.append(img_url)
 
         # fetching all images and saving them to the correct output folder
-        for index, img in enumerate(tqdm(img_urls, desc="downloading images", unit =" images")):
+        for index, img in enumerate(tqdm(img_urls, desc="downloading images", unit=" images")):
             img_data = req.get(img).content
-            with open(f"./output/{slugify(search)}/pic{index+1}.png", "wb") as local_file:
+            with open(f"./output/{slugify(search)}/pic{index + 1}.png", "wb") as local_file:
                 local_file.write(img_data)
     except FileExistsError:
         print(f"Please remove the directory {slugify(search)} from the output folder.")
