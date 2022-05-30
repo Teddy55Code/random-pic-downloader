@@ -57,7 +57,7 @@ def loading_animation():
             sys.stdout.write(f"\rcollecting images {cycle}")
             sys.stdout.flush()
             time.sleep(0.3)
-    sys.stdout.write("\rcollected images\n     ")
+    sys.stdout.write("\rcollected images   \n     ")
 
 def file_in_path(name, root):
     for count, (base, dirs, files) in enumerate(os.walk(root)):
