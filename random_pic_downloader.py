@@ -126,11 +126,16 @@ elif installed_browser == "firefox":
 
 time.sleep(0.2)
 
+is_valid_searchterm = False
+
 while not exited:
-    search = input("Please give a searchterm: ")
-    if len(search.strip()) == 0:
-        console.print("[red]Please enter a searchterm[/]")
-        continue
+    if not is_valid_searchterm:
+        search = input("Please give a searchterm: ")
+        if len(search.strip()) == 0:
+            console.print("[red]Please enter a searchterm[/]")
+            continue
+        else:
+            is_valid_searchterm = True
 
     amount_to_download = input("Please enter how many images you want: ")
     if amount_to_download.isdigit():
@@ -213,3 +218,5 @@ while not exited:
 
     if repeat != "y":
         exited = True
+
+    is_valid_searchterm = False
