@@ -128,8 +128,16 @@ time.sleep(0.2)
 
 while not exited:
     search = input("Please give a searchterm: ")
+    if len(search.strip()) == 0:
+        print("Please enter a searchterm")
+        continue
 
-    amount_to_download = int(input("Please enter how many images you want: "))
+    amount_to_download = input("Please enter how many images you want: ")
+    if amount_to_download.isdigit():
+        amount_to_download = int(amount_to_download)
+    else:
+        print("Please enter a number")
+        continue
 
     url = f"https://www.google.com/search?q={search}&source=lnms&tbm=isch"
 
