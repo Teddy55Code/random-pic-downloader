@@ -194,8 +194,8 @@ while not exited:
 
         # isolating the src of the img tag
         for img in tqdm(img_divs_to_process[:amount_to_download], desc="fetching image url from google", unit=" req"):
-            img_url_index = str(img).find("src=\"") + 5
-            img_url = str(img)[img_url_index::].split("\"")[0]
+            # this regex expression parses the src url from a http img element
+            img_url = re.search('(?<=src=").*?(?=")', str(img)).group()
             if img_url.startswith("http"):
                 img_urls.append(img_url)
 
