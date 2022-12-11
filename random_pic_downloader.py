@@ -65,7 +65,7 @@ def file_in_path(name, root):
     for count, (base, dirs, files) in enumerate(os.walk(root)):
         if name in files:
             return os.path.join(base, name)
-        elif count >= 10000:
+        elif count >= 100000:
             return None
 
 
